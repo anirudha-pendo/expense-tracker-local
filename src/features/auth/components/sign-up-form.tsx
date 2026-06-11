@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -90,6 +91,30 @@ export function SignUpForm({ onSubmit }: SignUpFormProps) {
         />
         {errors.confirmPassword && (
           <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-start gap-2.5">
+          <input
+            id="acceptedTerms"
+            type="checkbox"
+            className="mt-0.5 size-4 shrink-0 accent-primary cursor-pointer"
+            {...register("acceptedTerms")}
+          />
+          <label htmlFor="acceptedTerms" className="text-sm text-muted-foreground leading-snug cursor-pointer select-none">
+            I agree to the{" "}
+            <Link
+              to="/terms"
+              target="_blank"
+              className="text-foreground underline underline-offset-2 hover:no-underline transition-all duration-150"
+            >
+              Terms and Conditions
+            </Link>
+          </label>
+        </div>
+        {errors.acceptedTerms && (
+          <p className="text-sm text-destructive">{errors.acceptedTerms.message}</p>
         )}
       </div>
 
