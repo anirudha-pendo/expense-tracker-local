@@ -1,6 +1,9 @@
-import { Wallet } from "lucide-react";
+import { useState } from "react";
+import { Download, Loader2, Wallet } from "lucide-react";
+import { toast } from "sonner";
 import { AppLayout } from "@/shared/components/app-layout";
 import { BpBox } from "@/shared/components/bp-box";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format";
@@ -23,10 +26,44 @@ const STATE_LABEL: Record<BudgetState, { text: string; className: string }> = {
 export function BudgetsPage() {
   const { workspace } = useAuthContext();
   const { rows, isLoading } = useBudgets(workspace!.id);
+  const [isExporting, setIsExporting] = useState(false);
 
   const currency = workspace?.currency ?? "USD";
   const locale = workspace?.locale ?? "en-US";
   const fmt = (n: number) => formatCurrency(n, currency, locale);
+
+  function handleExportCSV() {
+    if (rows.length === 0) return;
+    setIsExporting(true);
+    try {
+      const month = new Date().toISOString().slice(0, 7);
+      const header = ["Category", "Monthly Limit", "Spent", "Remaining", "% Used", "Status"];
+      const csvRows = rows.map((row) => {
+        const remaining = row.budget.monthlyLimit - row.spent;
+        return [
+          `"${row.category.name.replace(/"/g, '""')}"`,
+          row.budget.monthlyLimit.toFixed(2),
+          row.spent.toFixed(2),
+          remaining.toFixed(2),
+          Math.round(row.ratio * 100),
+          row.state === "over" ? "Over Budget" : row.state === "warning" ? "Warning" : "On Track",
+        ];
+      });
+      const csv = [header.join(","), ...csvRows.map((r) => r.join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `budgets-${month}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Budget CSV exported");
+    } catch {
+      toast.error("Export failed");
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   const totalBudgeted = rows.reduce((s, r) => s + r.budget.monthlyLimit, 0);
   const totalSpent = rows.reduce((s, r) => s + r.spent, 0);
@@ -57,7 +94,24 @@ export function BudgetsPage() {
   ];
 
   return (
-    <AppLayout title="Budgets">
+    <AppLayout
+      title="Budgets"
+      actions={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExportCSV}
+          disabled={isExporting || isLoading || rows.length === 0}
+        >
+          {isExporting ? (
+            <Loader2 data-icon="inline-start" className="animate-spin" />
+          ) : (
+            <Download data-icon="inline-start" />
+          )}
+          Export CSV
+        </Button>
+      }
+    >
       <div className="flex flex-col gap-6">
         {/* Summary cards */}
         {isLoading ? (
