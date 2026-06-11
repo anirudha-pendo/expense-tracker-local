@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/shared/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,19 +14,25 @@ import { TransactionFiltersBar, type TransactionFilters } from "../components/tr
 import { DeleteTransactionDialog } from "../components/delete-transaction-dialog";
 import { useAttachments } from "../hooks/use-attachments";
 import { getAttachmentCounts } from "@/lib/db/repositories/attachments.repo";
+import { useInvoices } from "@/features/invoices/hooks/use-invoices";
+import { InvoiceFormDialog } from "@/features/invoices/components/invoice-form-dialog";
 import type { TransactionWithCategory } from "../hooks/use-transactions";
 import type { TransactionFormValues } from "../schemas/transaction.schema";
-import type { Transaction } from "@/types";
+import type { Invoice, InvoiceItem, Transaction } from "@/types";
 
 export function TransactionsPage() {
   const { workspace } = useAuthContext();
+  const navigate = useNavigate();
   const { transactions, categories, isLoading, addTransaction, editTransaction, removeTransaction } =
     useTransactions(workspace!.id);
+  const { createInvoice } = useInvoices(workspace!.id);
 
   const [showForm, setShowForm] = useState(false);
   const [editingTx, setEditingTx] = useState<TransactionWithCategory | null>(null);
   const [deletingTx, setDeletingTx] = useState<TransactionWithCategory | null>(null);
   const [attachmentCounts, setAttachmentCounts] = useState<Map<string, number>>(new Map());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showInvoiceForm, setShowInvoiceForm] = useState(false);
 
   // Staged receipts for the add flow (no transaction id yet) and live
   // receipts for the edit flow.
@@ -129,14 +136,51 @@ export function TransactionsPage() {
     }
   }
 
+  const selectedInvoiceItems: InvoiceItem[] = useMemo(() => {
+    return filteredTransactions
+      .filter((tx) => selectedIds.has(tx.id))
+      .map((tx) => ({
+        transactionId: tx.id,
+        description: tx.description,
+        amount: tx.amount,
+        date: tx.date,
+        categoryName: tx.categoryName,
+      }));
+  }, [filteredTransactions, selectedIds]);
+
+  async function handleCreateInvoice(invoice: Invoice) {
+    try {
+      await createInvoice(invoice);
+      setShowInvoiceForm(false);
+      setSelectedIds(new Set());
+      toast.success("Invoice created");
+      navigate("/invoices");
+    } catch {
+      toast.error("Failed to create invoice");
+    }
+  }
+
   return (
     <AppLayout
       title="Transactions"
       actions={
-        <Button onClick={() => setShowForm(true)} size="sm">
-          <Plus data-icon="inline-start" />
-          Add Transaction
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowInvoiceForm(true)}
+              className="gap-1.5"
+            >
+              <FileText className="size-3.5" />
+              Create Invoice ({selectedIds.size})
+            </Button>
+          )}
+          <Button onClick={() => setShowForm(true)} size="sm">
+            <Plus data-icon="inline-start" />
+            Add Transaction
+          </Button>
+        </div>
       }
     >
       <div className="flex flex-col gap-4">
@@ -152,6 +196,8 @@ export function TransactionsPage() {
           locale={locale}
           isLoading={isLoading}
           attachmentCounts={attachmentCounts}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
           onEdit={setEditingTx}
           onDelete={setDeletingTx}
         />
@@ -212,6 +258,16 @@ export function TransactionsPage() {
         description={deletingTx?.description ?? ""}
         onConfirm={handleDelete}
         onCancel={() => setDeletingTx(null)}
+      />
+
+      <InvoiceFormDialog
+        open={showInvoiceForm}
+        items={selectedInvoiceItems}
+        currency={currency}
+        locale={locale}
+        workspaceId={workspace!.id}
+        onSubmit={handleCreateInvoice}
+        onCancel={() => setShowInvoiceForm(false)}
       />
     </AppLayout>
   );

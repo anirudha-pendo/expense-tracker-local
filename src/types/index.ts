@@ -87,3 +87,30 @@ export interface Attachment {
   blob: Blob;
   createdAt: string;
 }
+
+export interface InvoiceItem {
+  transactionId: string;
+  description: string;
+  amount: number;
+  date: string;
+  categoryName: string;
+}
+
+export type InvoiceStatus = "draft" | "sent" | "paid";
+
+export interface Invoice {
+  id: string;
+  workspaceId: string;
+  invoiceNumber: string;
+  clientName: string;
+  clientEmail: string;
+  clientAddress: string;
+  issueDate: string;
+  dueDate: string;
+  items: InvoiceItem[];
+  notes: string;
+  status: InvoiceStatus;
+  currency: string;
+  createdAt: string;
+  updatedAt: string;
+}
