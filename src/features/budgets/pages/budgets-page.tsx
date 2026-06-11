@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format";
+import { pendoTrack } from "@/lib/pendo";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
 import { useBudgets, type BudgetState } from "../hooks/use-budgets";
 import { BudgetManager } from "../components/budget-manager";
@@ -58,6 +59,7 @@ export function BudgetsPage() {
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Budget CSV exported");
+      pendoTrack("budget_exported", { rowCount: rows.length, month, currency });
     } catch {
       toast.error("Export failed");
     } finally {
