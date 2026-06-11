@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -103,9 +104,13 @@ export function SignUpForm({ onSubmit }: SignUpFormProps) {
           />
           <label htmlFor="acceptedTerms" className="text-sm text-muted-foreground leading-snug cursor-pointer select-none">
             I agree to the{" "}
-            <span className="text-foreground underline underline-offset-2">
+            <Link
+              to="/terms"
+              target="_blank"
+              className="text-foreground underline underline-offset-2 hover:no-underline transition-all duration-150"
+            >
               Terms and Conditions
-            </span>
+            </Link>
           </label>
         </div>
         {errors.acceptedTerms && (
