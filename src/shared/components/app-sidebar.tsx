@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, ArrowLeftRight, Lightbulb, Target, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, ArrowLeftRight, Lightbulb, Target, Settings, LogOut, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -15,6 +16,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
+import { AgentWaitlistDialog } from "@/features/agent/components/agent-waitlist-dialog";
+import { pendoTrack } from "@/lib/pendo";
+
+const WAITLIST_KEY = "finance-agent-waitlist-joined";
 
 const NAV_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
@@ -27,6 +32,20 @@ const NAV_ITEMS = [
 export function AppSidebar() {
   const { user, workspace, signOut } = useAuthContext();
   const { pathname } = useLocation();
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [waitlistJoined, setWaitlistJoined] = useState(
+    () => localStorage.getItem(WAITLIST_KEY) === "true"
+  );
+
+  function handleAgentClick() {
+    pendoTrack("Finance Agent Waitlist Opened", { alreadyJoined: waitlistJoined });
+    setWaitlistOpen(true);
+  }
+
+  function handleJoined() {
+    localStorage.setItem(WAITLIST_KEY, "true");
+    setWaitlistJoined(true);
+  }
 
   return (
     <Sidebar>
@@ -85,10 +104,29 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  className="h-9 px-3 rounded-lg cursor-pointer text-sidebar-foreground/50 hover:text-sidebar-foreground/80"
+                  onClick={handleAgentClick}
+                >
+                  <BrainCircuit className="size-4 shrink-0" />
+                  <span>Finance Agent</span>
+                  <span className="ml-auto inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold text-primary leading-none">
+                    {waitlistJoined ? "Joined" : "Soon"}
+                  </span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <AgentWaitlistDialog
+        open={waitlistOpen}
+        onOpenChange={setWaitlistOpen}
+        onJoined={handleJoined}
+      />
 
       <SidebarFooter className="px-3 py-4">
         <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors group">
