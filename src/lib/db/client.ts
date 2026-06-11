@@ -2,7 +2,7 @@ import { openDB, type IDBPDatabase } from "idb";
 import type { ExpenseTrackerDBSchema } from "./schema";
 
 const DB_NAME = "expense-tracker";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbInstance: IDBPDatabase<ExpenseTrackerDBSchema> | null = null;
 
@@ -37,6 +37,11 @@ export async function getDB(): Promise<IDBPDatabase<ExpenseTrackerDBSchema>> {
         const attachmentStore = db.createObjectStore("attachments", { keyPath: "id" });
         attachmentStore.createIndex("by-workspaceId", "workspaceId");
         attachmentStore.createIndex("by-transactionId", "transactionId");
+      }
+
+      if (oldVersion < 3) {
+        const invoiceStore = db.createObjectStore("invoices", { keyPath: "id" });
+        invoiceStore.createIndex("by-workspaceId", "workspaceId");
       }
     },
     // Close this connection if another tab upgrades to a newer version,
