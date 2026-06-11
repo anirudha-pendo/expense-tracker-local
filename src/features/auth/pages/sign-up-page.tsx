@@ -16,6 +16,7 @@ export function SignUpPage() {
       pendoTrack("user_signed_up", {
         username: values.username,
         hasDisplayName: Boolean(values.displayName),
+        acceptedTerms: values.acceptedTerms,
       });
       navigate("/setup-workspace", { replace: true });
     } catch (err) {
