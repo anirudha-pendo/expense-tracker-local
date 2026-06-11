@@ -17,7 +17,6 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
 import { AgentWaitlistDialog } from "@/features/agent/components/agent-waitlist-dialog";
-import { pendoTrack } from "@/lib/pendo";
 
 const WAITLIST_KEY = "finance-agent-waitlist-joined";
 
@@ -38,7 +37,6 @@ export function AppSidebar() {
   );
 
   function handleAgentClick() {
-    pendoTrack("Finance Agent Waitlist Opened", { alreadyJoined: waitlistJoined });
     setWaitlistOpen(true);
   }
 

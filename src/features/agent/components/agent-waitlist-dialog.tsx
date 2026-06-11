@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { pendoTrack } from "@/lib/pendo";
 import { BrainCircuit, CheckCircle2, Sparkles, TrendingUp, MessageSquare } from "lucide-react";
 
 type Step = "prompt" | "confirm" | "success";
@@ -24,21 +23,16 @@ export function AgentWaitlistDialog({ open, onOpenChange, onJoined }: AgentWaitl
 
   function handleOpenChange(isOpen: boolean) {
     if (!isOpen) {
-      if (step !== "success") {
-        pendoTrack("Finance Agent Waitlist Dismissed", { step });
-      }
       setTimeout(() => setStep("prompt"), 200);
     }
     onOpenChange(isOpen);
   }
 
   function handleJoinClick() {
-    pendoTrack("Finance Agent Waitlist Join Clicked");
     setStep("confirm");
   }
 
   function handleConfirm() {
-    pendoTrack("Finance Agent Waitlist Joined");
     setStep("success");
     onJoined();
   }
