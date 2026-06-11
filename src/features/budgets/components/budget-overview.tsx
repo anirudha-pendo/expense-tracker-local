@@ -27,7 +27,7 @@ export function BudgetOverview() {
           Budgets · This Month
         </span>
         <Link
-          to="/settings"
+          to="/budgets"
           className="font-mono text-[10px] text-muted-foreground/40 hover:text-foreground transition-colors uppercase tracking-widest"
         >
           Manage

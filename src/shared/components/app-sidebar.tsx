@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, ArrowLeftRight, Lightbulb, Target, Settings, LogOut, BrainCircuit } from "lucide-react";
+import { LayoutDashboard, ArrowLeftRight, Lightbulb, Target, Wallet, Settings, LogOut, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { label: "Transactions", icon: ArrowLeftRight, href: "/transactions" },
   { label: "Insights", icon: Lightbulb, href: "/insights" },
   { label: "Goals", icon: Target, href: "/goals" },
+  { label: "Budgets", icon: Wallet, href: "/budgets" },
   { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
