@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { BpBox } from "@/shared/components/bp-box";
+import { pendoTrack } from "@/lib/pendo";
 import { createWorkspace } from "@/lib/db/repositories/workspaces.repo";
 import { seedDefaultCategories } from "@/lib/db/repositories/categories.repo";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
@@ -24,6 +25,12 @@ export function WorkspaceSetupPage() {
       };
       await createWorkspace(workspace);
       await seedDefaultCategories(workspace.id);
+      pendoTrack("workspace_created", {
+        workspaceId: workspace.id,
+        workspaceName: workspace.name,
+        currency: workspace.currency,
+        locale: workspace.locale,
+      });
       setActiveWorkspace(workspace);
       navigate("/", { replace: true });
     } catch (err) {

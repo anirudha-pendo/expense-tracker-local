@@ -5,6 +5,7 @@ import { AppLayout } from "@/shared/components/app-layout";
 import { BpBox } from "@/shared/components/bp-box";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { pendoTrack } from "@/lib/pendo";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
 import { useGoals } from "../hooks/use-goals";
 import { GoalCard } from "../components/goal-card";
@@ -35,6 +36,13 @@ export function GoalsPage() {
         deadline: values.deadline || undefined,
         color: values.color,
       });
+      pendoTrack("goal_created", {
+        goalName: values.name,
+        targetAmount: values.targetAmount,
+        hasDeadline: Boolean(values.deadline),
+        color: values.color,
+        currency,
+      });
       setShowForm(false);
       toast.success("Goal created");
     } catch {
@@ -52,6 +60,12 @@ export function GoalsPage() {
         deadline: values.deadline || undefined,
         color: values.color,
       });
+      pendoTrack("goal_edited", {
+        goalName: values.name,
+        targetAmount: values.targetAmount,
+        hasDeadline: Boolean(values.deadline),
+        color: values.color,
+      });
       setEditingGoal(null);
       toast.success("Goal updated");
     } catch {
@@ -67,6 +81,16 @@ export function GoalsPage() {
         date: values.date,
         note: values.note || undefined,
       });
+      const totalSaved = (contributingGoal.contributions ?? []).reduce((s, c) => s + c.amount, 0) + values.amount;
+      pendoTrack("goal_contribution_added", {
+        goalId: contributingGoal.id,
+        goalName: contributingGoal.name,
+        contributionAmount: values.amount,
+        totalSaved,
+        targetAmount: contributingGoal.targetAmount,
+        progressPercentage: Math.round((totalSaved / contributingGoal.targetAmount) * 100),
+        hasNote: Boolean(values.note),
+      });
       setContributingGoal(null);
       toast.success("Contribution added");
     } catch {
@@ -78,6 +102,9 @@ export function GoalsPage() {
     if (!deletingGoal) return;
     try {
       await removeGoal(deletingGoal.id);
+      pendoTrack("goal_deleted", {
+        goalName: deletingGoal.name,
+      });
       setDeletingGoal(null);
       toast.success("Goal deleted");
     } catch {

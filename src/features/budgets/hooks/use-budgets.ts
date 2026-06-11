@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { pendoTrack } from "@/lib/pendo";
 import { deleteBudget, getBudgetsByWorkspaceId, upsertBudget } from "@/lib/db/repositories/budgets.repo";
 import { getCategoriesByWorkspaceId } from "@/lib/db/repositories/categories.repo";
 import { getTransactionsByWorkspaceId } from "@/lib/db/repositories/transactions.repo";
@@ -72,6 +73,7 @@ export function useBudgets(workspaceId: string): UseBudgetsReturn {
 
   const saveBudget = useCallback(
     async (categoryId: string, monthlyLimit: number) => {
+      const isNew = !budgets.find((b) => b.categoryId === categoryId);
       const now = new Date().toISOString();
       await upsertBudget({
         id: crypto.randomUUID(),
@@ -81,6 +83,11 @@ export function useBudgets(workspaceId: string): UseBudgetsReturn {
         createdAt: now,
         updatedAt: now,
       });
+      pendoTrack("budget_saved", {
+        categoryId,
+        monthlyLimit,
+        isNewBudget: isNew,
+      });
       await reload();
     },
     [workspaceId, reload]
@@ -88,7 +95,12 @@ export function useBudgets(workspaceId: string): UseBudgetsReturn {
 
   const removeBudget = useCallback(
     async (id: string) => {
+      const existing = budgets.find((b) => b.id === id);
       await deleteBudget(id);
+      pendoTrack("budget_removed", {
+        categoryId: existing?.categoryId,
+        previousMonthlyLimit: existing?.monthlyLimit,
+      });
       await reload();
     },
     [reload]

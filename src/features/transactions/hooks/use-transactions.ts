@@ -6,6 +6,7 @@ import {
   updateTransaction,
 } from "@/lib/db/repositories/transactions.repo";
 import { toast } from "sonner";
+import { pendoTrack } from "@/lib/pendo";
 import { getCategoriesByWorkspaceId } from "@/lib/db/repositories/categories.repo";
 import { getBudgetsByWorkspaceId } from "@/lib/db/repositories/budgets.repo";
 import { checkBudgetThresholds } from "@/features/budgets/lib/budget-alerts";
@@ -24,6 +25,14 @@ export async function notifyBudgetThreshold(
   if (!alert) return;
   const categoryName = categories.find((c) => c.id === alert.categoryId)?.name ?? "Category";
   const percent = Math.round((alert.spent / alert.monthlyLimit) * 100);
+  pendoTrack("budget_threshold_exceeded", {
+    categoryId: alert.categoryId,
+    categoryName,
+    monthlyLimit: alert.monthlyLimit,
+    currentSpend: alert.spent,
+    thresholdType: alert.level,
+    transactionAmount: tx.amount,
+  });
   if (alert.level === "over") {
     toast.error(`Budget exceeded: ${categoryName} is at ${percent}% of its monthly limit`);
   } else {

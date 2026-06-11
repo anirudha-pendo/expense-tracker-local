@@ -7,6 +7,7 @@ import { getTransactionsByWorkspaceId, createTransaction } from "@/lib/db/reposi
 import { getCategoriesByWorkspaceId } from "@/lib/db/repositories/categories.repo";
 import { getGoalsByWorkspaceId, createGoal } from "@/lib/db/repositories/goals.repo";
 import { getBudgetsByWorkspaceId, upsertBudget } from "@/lib/db/repositories/budgets.repo";
+import { pendoTrack } from "@/lib/pendo";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
 import type { Budget, Goal, Transaction } from "@/types";
 
@@ -30,6 +31,13 @@ export function DataExportImport() {
       const data = { workspace, transactions, categories, goals, budgets, exportedAt: new Date().toISOString() };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       downloadBlob(blob, `expense-tracker-export-${new Date().toISOString().slice(0, 10)}.json`);
+      pendoTrack("data_exported", {
+        exportFormat: "json",
+        transactionCount: transactions.length,
+        goalCount: goals.length,
+        budgetCount: budgets.length,
+        categoryCount: categories.length,
+      });
       toast.success("Exported successfully");
     } catch {
       toast.error("Export failed");
@@ -61,6 +69,11 @@ export function DataExportImport() {
       const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       downloadBlob(blob, `transactions-${new Date().toISOString().slice(0, 10)}.csv`);
+      pendoTrack("data_exported", {
+        exportFormat: "csv",
+        transactionCount: transactions.length,
+        categoryCount: categories.length,
+      });
       toast.success("CSV exported successfully");
     } catch {
       toast.error("CSV export failed");
@@ -117,6 +130,13 @@ export function DataExportImport() {
         }
       }
 
+      pendoTrack("data_imported", {
+        importedTransactionCount: imported,
+        importedGoalCount: Array.isArray(data.goals) ? data.goals.length : 0,
+        importedBudgetCount: Array.isArray(data.budgets) ? data.budgets.length : 0,
+        fileName: file.name,
+        fileSize: file.size,
+      });
       toast.success(
         `Imported ${imported} transaction${imported !== 1 ? "s" : ""}${
           extras > 0 ? ` and ${extras} goal${extras !== 1 ? "s" : ""}/budget${extras !== 1 ? "s" : ""}` : ""

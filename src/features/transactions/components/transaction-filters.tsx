@@ -2,6 +2,7 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { pendoTrack } from "@/lib/pendo";
 import type { Category } from "@/types";
 
 export const ALL_CATEGORIES_VALUE = "_all";
@@ -33,7 +34,14 @@ export function TransactionFiltersBar({ filters, categories, onChange }: Transac
   const categorySelectValue = filters.categoryId === "" ? ALL_CATEGORIES_VALUE : filters.categoryId;
 
   function handleCategoryChange(v: string) {
-    onChange({ ...filters, categoryId: v === ALL_CATEGORIES_VALUE ? "" : v });
+    const updated = { ...filters, categoryId: v === ALL_CATEGORIES_VALUE ? "" : v };
+    onChange(updated);
+    pendoTrack("transaction_search_applied", {
+      hasSearchQuery: Boolean(updated.search),
+      typeFilter: updated.type,
+      hasCategoryFilter: Boolean(updated.categoryId),
+      hasMonthFilter: Boolean(updated.month),
+    });
   }
 
   return (
@@ -50,7 +58,16 @@ export function TransactionFiltersBar({ filters, categories, onChange }: Transac
 
       <Select
         value={filters.type}
-        onValueChange={(v) => onChange({ ...filters, type: v as TransactionFilters["type"] })}
+        onValueChange={(v) => {
+          const updated = { ...filters, type: v as TransactionFilters["type"] };
+          onChange(updated);
+          pendoTrack("transaction_search_applied", {
+            hasSearchQuery: Boolean(updated.search),
+            typeFilter: updated.type,
+            hasCategoryFilter: Boolean(updated.categoryId),
+            hasMonthFilter: Boolean(updated.month),
+          });
+        }}
       >
         <SelectTrigger className="w-[130px]">
           <SelectValue placeholder="Type" />
@@ -85,7 +102,16 @@ export function TransactionFiltersBar({ filters, categories, onChange }: Transac
       <Input
         type="month"
         value={filters.month}
-        onChange={(e) => onChange({ ...filters, month: e.target.value })}
+        onChange={(e) => {
+          const updated = { ...filters, month: e.target.value };
+          onChange(updated);
+          pendoTrack("transaction_search_applied", {
+            hasSearchQuery: Boolean(updated.search),
+            typeFilter: updated.type,
+            hasCategoryFilter: Boolean(updated.categoryId),
+            hasMonthFilter: Boolean(updated.month),
+          });
+        }}
         className="w-[160px]"
       />
 

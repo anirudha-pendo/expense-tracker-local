@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { BpBox } from "@/shared/components/bp-box";
+import { pendoTrack } from "@/lib/pendo";
 import { useAuthContext } from "../hooks/auth-context";
 import { SignUpForm } from "../components/sign-up-form";
 import type { SignUpFormValues } from "../schemas/auth.schema";
@@ -12,6 +13,10 @@ export function SignUpPage() {
   async function handleSignUp(values: SignUpFormValues) {
     try {
       await signUp(values.username, values.displayName, values.password);
+      pendoTrack("user_signed_up", {
+        username: values.username,
+        hasDisplayName: Boolean(values.displayName),
+      });
       navigate("/setup-workspace", { replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign up failed");

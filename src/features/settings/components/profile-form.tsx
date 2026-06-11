@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Avatar from "boring-avatars";
 import { updateUser } from "@/lib/db/repositories/users.repo";
+import { pendoTrack } from "@/lib/pendo";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
 
 const profileSchema = z.object({
@@ -40,6 +41,9 @@ export function ProfileForm() {
 
       await updateUser({ ...user, displayName: values.displayName, avatarInitials: initials });
       await refreshUser();
+      pendoTrack("profile_updated", {
+        hasDisplayName: Boolean(values.displayName),
+      });
       toast.success("Profile updated");
     } catch {
       toast.error("Failed to update profile");

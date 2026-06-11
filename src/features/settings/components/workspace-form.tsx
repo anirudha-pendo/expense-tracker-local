@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateWorkspace } from "@/lib/db/repositories/workspaces.repo";
+import { pendoTrack } from "@/lib/pendo";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
 import type { Workspace } from "@/types";
 
@@ -65,6 +66,11 @@ export function WorkspaceForm() {
       const updated: Workspace = { ...workspace, ...values };
       await updateWorkspace(updated);
       setActiveWorkspace(updated);
+      pendoTrack("workspace_settings_updated", {
+        workspaceName: values.name,
+        currency: values.currency,
+        locale: values.locale,
+      });
       toast.success("Workspace settings saved");
     } catch {
       toast.error("Failed to save workspace settings");

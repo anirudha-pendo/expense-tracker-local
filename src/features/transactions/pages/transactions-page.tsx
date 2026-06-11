@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { AppLayout } from "@/shared/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { pendoTrack } from "@/lib/pendo";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
 import { useTransactions } from "../hooks/use-transactions";
 import { TransactionTable } from "../components/transaction-table";
@@ -72,6 +73,14 @@ export function TransactionsPage() {
     try {
       const created = await addTransaction({ ...values, workspaceId: workspace!.id, notes: values.notes ?? "" });
       await addAttachments.flushStaged(created.id);
+      pendoTrack("transaction_added", {
+        transactionType: values.type,
+        amount: values.amount,
+        categoryId: values.categoryId,
+        isRecurring: values.isRecurring,
+        hasAttachments: addAttachments.totalCount > 0,
+        hasNotes: Boolean(values.notes),
+      });
       setShowForm(false);
       toast.success("Transaction added");
     } catch {
@@ -89,6 +98,13 @@ export function TransactionsPage() {
         date: values.date,
       };
       await editTransaction(updated);
+      pendoTrack("transaction_edited", {
+        transactionType: values.type,
+        amount: values.amount,
+        categoryId: values.categoryId,
+        isRecurring: values.isRecurring,
+        hasNotes: Boolean(values.notes),
+      });
       setEditingTx(null);
       await refreshAttachmentCounts();
       toast.success("Transaction updated");
@@ -101,6 +117,11 @@ export function TransactionsPage() {
     if (!deletingTx) return;
     try {
       await removeTransaction(deletingTx.id);
+      pendoTrack("transaction_deleted", {
+        transactionType: deletingTx.type,
+        amount: deletingTx.amount,
+        categoryId: deletingTx.categoryId,
+      });
       setDeletingTx(null);
       toast.success("Transaction deleted");
     } catch {
