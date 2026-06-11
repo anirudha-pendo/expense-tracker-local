@@ -93,6 +93,26 @@ export function SignUpForm({ onSubmit }: SignUpFormProps) {
         )}
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-start gap-2.5">
+          <input
+            id="acceptedTerms"
+            type="checkbox"
+            className="mt-0.5 size-4 shrink-0 accent-primary cursor-pointer"
+            {...register("acceptedTerms")}
+          />
+          <label htmlFor="acceptedTerms" className="text-sm text-muted-foreground leading-snug cursor-pointer select-none">
+            I agree to the{" "}
+            <span className="text-foreground underline underline-offset-2">
+              Terms and Conditions
+            </span>
+          </label>
+        </div>
+        {errors.acceptedTerms && (
+          <p className="text-sm text-destructive">{errors.acceptedTerms.message}</p>
+        )}
+      </div>
+
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting && <Loader2 data-icon="inline-start" className="animate-spin" />}
         Create account
