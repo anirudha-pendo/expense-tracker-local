@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { pendoTrack } from "@/lib/pendo";
 import {
   createAttachment,
   deleteAttachment,
@@ -88,6 +89,17 @@ export function useAttachments(workspaceId: string, transactionId: string | null
         }
       }
       if (transactionId) await reload();
+      const added = count - totalCount;
+      if (added > 0) {
+        const mimeTypes = Array.from(files).map((f) => f.type).filter(Boolean);
+        const totalSize = Array.from(files).reduce((sum, f) => sum + f.size, 0);
+        pendoTrack("attachment_uploaded", {
+          fileCount: added,
+          fileMimeTypes: [...new Set(mimeTypes)].join(","),
+          totalFileSize: totalSize,
+          transactionId: transactionId ?? "staged",
+        });
+      }
     },
     [workspaceId, transactionId, totalCount, reload]
   );

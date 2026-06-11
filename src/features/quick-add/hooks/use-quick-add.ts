@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { pendoTrack } from "@/lib/pendo";
 import { createTransaction, getTransactionsByWorkspaceId } from "@/lib/db/repositories/transactions.repo";
 import { getCategoriesByWorkspaceId } from "@/lib/db/repositories/categories.repo";
 import { notifyBudgetThreshold } from "@/features/transactions/hooks/use-transactions";
@@ -81,6 +82,13 @@ export function useQuickAdd(workspaceId: string, open: boolean): UseQuickAddRetu
       };
       await createTransaction(tx);
       await notifyBudgetThreshold(workspaceId, tx, transactions, categories);
+      pendoTrack("quick_add_transaction_saved", {
+        transactionType: type,
+        amount: parsed.amount,
+        categoryId: effectiveCategory.id,
+        inputLength: input.length,
+        hadCategoryOverride: Boolean(overrideCategory),
+      });
       // Keep local history fresh so the next entry's inference sees this one.
       setTransactions((prev) => [tx, ...prev]);
       setInput("");

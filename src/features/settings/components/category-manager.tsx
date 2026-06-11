@@ -23,6 +23,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createCategory, deleteCategory, updateCategory } from "@/lib/db/repositories/categories.repo";
+import { pendoTrack } from "@/lib/pendo";
 import { useAuthContext } from "@/features/auth/hooks/auth-context";
 import { useCategories } from "../hooks/use-settings";
 import type { Category, CategoryScope } from "@/types";
@@ -158,6 +159,11 @@ export function CategoryManager() {
         isDefault: false,
       };
       await createCategory(cat);
+      pendoTrack("category_added", {
+        categoryName: values.name,
+        categoryColor: values.color,
+        categoryScope: values.scope,
+      });
       await reload();
       setShowForm(false);
       toast.success("Category added");
@@ -170,6 +176,12 @@ export function CategoryManager() {
     if (!editingCat) return;
     try {
       await updateCategory({ ...editingCat, ...values });
+      pendoTrack("category_edited", {
+        categoryName: values.name,
+        categoryColor: values.color,
+        categoryScope: values.scope,
+        isDefault: editingCat.isDefault,
+      });
       await reload();
       setEditingCat(null);
       toast.success("Category updated");
@@ -182,6 +194,10 @@ export function CategoryManager() {
     if (!deletingCat) return;
     try {
       await deleteCategory(deletingCat.id);
+      pendoTrack("category_deleted", {
+        categoryName: deletingCat.name,
+        isDefault: deletingCat.isDefault,
+      });
       await reload();
       setDeletingCat(null);
       toast.success("Category deleted");

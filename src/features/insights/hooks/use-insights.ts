@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { pendoTrack } from "@/lib/pendo";
 import { getTransactionsByWorkspaceId } from "@/lib/db/repositories/transactions.repo";
 import { getCategoriesByWorkspaceId } from "@/lib/db/repositories/categories.repo";
 import { getBudgetsByWorkspaceId } from "@/lib/db/repositories/budgets.repo";
@@ -55,14 +56,31 @@ export function useInsights(workspaceId: string): Insights {
 
   useDataChanged(load);
 
+  const hasTrackedRef = useRef(false);
+
   return useMemo(() => {
     const now = new Date();
+    const forecast = forecastEndOfMonth(transactions, now);
+    const anomalies = detectAnomalies(transactions, categories, now);
+    const health = computeHealthScore(transactions, budgets, now);
+
+    if (!isLoading && transactions.length > 0 && !hasTrackedRef.current) {
+      hasTrackedRef.current = true;
+      pendoTrack("insights_generated", {
+        healthScore: health.score,
+        forecastAmount: forecast.projected,
+        anomalyCount: anomalies.length,
+        transactionCount: transactions.length,
+        budgetCount: budgets.length,
+      });
+    }
+
     return {
-      forecast: forecastEndOfMonth(transactions, now),
+      forecast,
       deltas: monthOverMonthDeltas(transactions, categories, now),
-      anomalies: detectAnomalies(transactions, categories, now),
+      anomalies,
       largest: largestExpenses(transactions, now),
-      health: computeHealthScore(transactions, budgets, now),
+      health,
       categories,
       hasTransactions: transactions.length > 0,
       isLoading,

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { BpBox } from "@/shared/components/bp-box";
+import { pendoTrack } from "@/lib/pendo";
 import { useAuthContext } from "../hooks/auth-context";
 import { SignInForm } from "../components/sign-in-form";
 import type { SignInFormValues } from "../schemas/auth.schema";
@@ -12,6 +13,10 @@ export function SignInPage() {
   async function handleSignIn(values: SignInFormValues) {
     try {
       await signIn(values.username, values.password);
+      pendoTrack("user_signed_in", {
+        username: values.username,
+        hasWorkspace,
+      });
       navigate(hasWorkspace ? "/" : "/setup-workspace", { replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign in failed");
