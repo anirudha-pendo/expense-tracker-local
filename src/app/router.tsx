@@ -12,6 +12,7 @@ import { ProtectedRoute } from "@/shared/components/protected-route";
 import { BotPage } from "@/features/bot/pages/bot-page";
 import { TermsPage } from "@/features/auth/pages/terms-page";
 import { BudgetsPage } from "@/features/budgets/pages/budgets-page";
+import { ReportsPage } from "@/features/reports/pages/reports-page";
 
 function GuestGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, hasWorkspace, isLoading } = useAuthContext();
@@ -106,6 +107,14 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <BudgetsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <ReportsPage />
             </ProtectedRoute>
           }
         />
