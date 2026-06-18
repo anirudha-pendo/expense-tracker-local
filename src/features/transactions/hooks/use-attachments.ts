@@ -107,9 +107,13 @@ export function useAttachments(workspaceId: string, transactionId: string | null
   const removeAttachment = useCallback(
     async (id: string) => {
       await deleteAttachment(id);
+      pendoTrack("attachment_removed", {
+        attachmentId: id,
+        transactionId: transactionId ?? "staged",
+      });
       await reload();
     },
-    [reload]
+    [transactionId, reload]
   );
 
   const removeStagedFile = useCallback((id: string) => {
