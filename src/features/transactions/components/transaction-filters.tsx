@@ -28,7 +28,13 @@ export function TransactionFiltersBar({ filters, categories, onChange }: Transac
     filters.month !== "";
 
   function reset() {
+    const activeCount =
+      (filters.search !== "" ? 1 : 0) +
+      (filters.type !== "all" ? 1 : 0) +
+      (filters.categoryId !== "" ? 1 : 0) +
+      (filters.month !== "" ? 1 : 0);
     onChange({ search: "", type: "all", categoryId: "", month: "" });
+    pendoTrack("transaction_filters_cleared", { clearedFilterCount: activeCount });
   }
 
   const categorySelectValue = filters.categoryId === "" ? ALL_CATEGORIES_VALUE : filters.categoryId;
@@ -116,8 +122,9 @@ export function TransactionFiltersBar({ filters, categories, onChange }: Transac
       />
 
       {hasActiveFilters && (
-        <Button variant="ghost" size="icon" onClick={reset} aria-label="Clear filters">
-          <X className="size-4" />
+        <Button variant="ghost" size="sm" onClick={reset} aria-label="Clear filters">
+          <X className="size-4 mr-1" />
+          Clear filters
         </Button>
       )}
     </div>
