@@ -15,8 +15,8 @@ export function SummaryCards({ stats, currency, locale, isLoading }: SummaryCard
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        {Array.from({ length: 3 }).map((_, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
           <BpBox key={i} className="p-5">
             <Skeleton className="h-3 w-16 mb-4" />
             <Skeleton className="h-7 w-28 mb-2" />
@@ -26,6 +26,13 @@ export function SummaryCards({ stats, currency, locale, isLoading }: SummaryCard
       </div>
     );
   }
+
+  // Share of this month's income that was not spent. Undefined when there is no
+  // income to divide by — rendered as an em dash rather than 0%.
+  const savingsRate =
+    stats.totalIncome > 0
+      ? ((stats.totalIncome - stats.totalExpenses) / stats.totalIncome) * 100
+      : null;
 
   const cards = [
     {
@@ -49,10 +56,24 @@ export function SummaryCards({ stats, currency, locale, isLoading }: SummaryCard
       valueClass: stats.netBalance >= 0 ? "text-foreground" : "text-red-600",
       marker: stats.netBalance >= 0 ? "=" : "−",
     },
+    {
+      label: "Savings Rate",
+      value: savingsRate === null ? "—" : `${savingsRate.toFixed(0)}%`,
+      sub: "share of income kept",
+      valueClass:
+        savingsRate === null
+          ? "text-muted-foreground"
+          : savingsRate >= 20
+            ? "text-emerald-700"
+            : savingsRate >= 0
+              ? "text-foreground"
+              : "text-red-600",
+      marker: "%",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {cards.map((card, i) => (
         <BpBox
           key={card.label}
