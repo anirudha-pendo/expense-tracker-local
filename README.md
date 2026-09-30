@@ -10,6 +10,7 @@ Currently, two official plugins are available:
 ## Testing
 
 Run `npm test` to execute the test suite.
+Run `npm run lint` to check code style.
 
 ## React Compiler
 
