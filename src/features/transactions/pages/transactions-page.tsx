@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { AppLayout } from "@/shared/components/app-layout";
@@ -68,6 +68,26 @@ export function TransactionsPage() {
       return true;
     });
   }, [transactions, filters]);
+
+  // Debounced tracking of search/filter usage
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => {
+    const hasActiveFilters = filters.search || filters.type !== "all" || filters.categoryId || filters.month;
+    if (!hasActiveFilters) return;
+
+    clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      pendoTrack("transactions_searched", {
+        searchQuery: filters.search,
+        filterType: filters.type,
+        filterCategoryId: filters.categoryId,
+        filterMonth: filters.month,
+        resultsCount: filteredTransactions.length,
+      });
+    }, 500);
+
+    return () => clearTimeout(searchDebounceRef.current);
+  }, [filters, filteredTransactions.length]);
 
   async function handleAdd(values: TransactionFormValues) {
     try {
