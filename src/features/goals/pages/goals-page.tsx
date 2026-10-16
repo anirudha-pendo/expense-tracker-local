@@ -81,7 +81,8 @@ export function GoalsPage() {
         date: values.date,
         note: values.note || undefined,
       });
-      const totalSaved = (contributingGoal.contributions ?? []).reduce((s, c) => s + c.amount, 0) + values.amount;
+      const previousTotal = (contributingGoal.contributions ?? []).reduce((s, c) => s + c.amount, 0);
+      const totalSaved = previousTotal + values.amount;
       pendoTrack("goal_contribution_added", {
         goalId: contributingGoal.id,
         goalName: contributingGoal.name,
@@ -91,6 +92,20 @@ export function GoalsPage() {
         progressPercentage: Math.round((totalSaved / contributingGoal.targetAmount) * 100),
         hasNote: Boolean(values.note),
       });
+      if (totalSaved >= contributingGoal.targetAmount && previousTotal < contributingGoal.targetAmount) {
+        const contributionCount = (contributingGoal.contributions ?? []).length + 1;
+        const daysToComplete = Math.round(
+          (Date.now() - new Date(contributingGoal.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+        );
+        pendoTrack("goal_completed", {
+          goalId: contributingGoal.id,
+          goalName: contributingGoal.name,
+          targetAmount: contributingGoal.targetAmount,
+          totalSaved,
+          contributionCount,
+          daysToComplete,
+        });
+      }
       setContributingGoal(null);
       toast.success("Contribution added");
     } catch {

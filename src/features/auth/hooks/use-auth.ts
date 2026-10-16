@@ -4,6 +4,7 @@ import { getDB } from "@/lib/db/client";
 import { createUser, getUserByUsername } from "@/lib/db/repositories/users.repo";
 import { getWorkspacesByUserId } from "@/lib/db/repositories/workspaces.repo";
 import { clearSession, getSession, saveSession } from "@/lib/session";
+import { pendoTrack } from "@/lib/pendo";
 import type { Session, User, Workspace } from "@/types";
 
 interface AuthState {
@@ -127,6 +128,7 @@ export function useAuth(): AuthState & AuthActions {
   }, []);
 
   const signOut = useCallback(() => {
+    pendoTrack("user_signed_out");
     pendo.clearSession();
     clearSession();
     setUser(null);
